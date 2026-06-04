@@ -22,8 +22,8 @@ export function useCharacters() {
       
       // The CSV has two sections separated by empty lines.
       // We need to find where the second header starts.
-      // First header is at line 1: 位置,球員名稱...
-      // Second header is at line 110: 位置,球員名稱...
+      // First header is the batter section: 背號,位置,球員名稱,擊球...
+      // Second header is the pitcher section: 背號,位置,球員名稱,控球...
       
       // Split by lines to find the break
       const lines = csvText.split(/\r?\n/)
@@ -40,7 +40,7 @@ export function useCharacters() {
         if (!line) continue // Skip empty lines
         
         // Check if this is the second header
-        if (i > 0 && line.startsWith('位置,球員名稱') && line.includes('控球')) {
+        if (i > 0 && line.startsWith('背號,位置,球員名稱') && line.includes('控球')) {
           isPitcherSection = true
           pitcherLines.push(line)
           continue
