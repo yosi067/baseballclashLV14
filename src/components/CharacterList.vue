@@ -16,7 +16,7 @@ const props = defineProps({
 const emit = defineEmits(['select'])
 
 const searchQuery = ref('')
-const sortField = ref('Average')
+const sortField = ref('JerseyNumber')
 const sortDirection = ref('desc')
 const showFilters = ref(false)
 
@@ -29,6 +29,7 @@ const positionOptions = ['外野手', '內野手', '捕手', '投手', '投手(�
 
 // Sort options with Chinese labels and corresponding keys
 const sortOptions = [
+  { label: '背號', key: 'JerseyNumber' },
   { label: '擊球', key: '擊球' },
   { label: '力量', key: '力量' },
   { label: '跑速', key: '跑速' },
@@ -39,6 +40,13 @@ const sortOptions = [
   { label: '移動', key: '移動' },
   { label: '旋轉', key: '旋轉' },
 ]
+
+const maxJerseyNumber = computed(() => {
+  return props.characters.reduce((max, character) => {
+    const jerseyNumber = Number(character.JerseyNumber) || 0
+    return jerseyNumber > max ? jerseyNumber : max
+  }, 0)
+})
 
 const filteredCharacters = computed(() => {
   let result = [...props.characters]
@@ -201,6 +209,8 @@ const getSortLabel = (key) => {
         <div class="char-info">
           <div class="char-name">
             {{ char.Name }}
+            <span class="jersey-number">#{{ char.JerseyNumber }}</span>
+            <span v-if="Number(char.JerseyNumber) === maxJerseyNumber" class="new-badge">New</span>
             <span v-if="char.Position === '投手(打)'" class="batting-indicator">打擊</span>
           </div>
           <div class="char-stats-mini">
@@ -474,6 +484,25 @@ const getSortLabel = (key) => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.jersey-number {
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.new-badge {
+  font-size: 0.7rem;
+  background: linear-gradient(135deg, #f97316, #facc15);
+  color: #0f172a;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.55);
 }
 
 .batting-indicator {

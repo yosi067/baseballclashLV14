@@ -74,6 +74,7 @@ const maxStat = 255
         <div class="header-info">
           <h1 class="name">{{ character.Name }}</h1>
           <div class="badges">
+            <span class="badge jersey">背號 #{{ character.JerseyNumber }}</span>
             <span class="badge level">{{ character.Level }}</span>
             <span class="badge avg">總和 {{ character.Average }}</span>
           </div>
@@ -258,6 +259,12 @@ const maxStat = 255
   background: rgba(251, 191, 36, 0.2);
   color: #fbbf24;
   border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.badge.jersey {
+  background: rgba(56, 189, 248, 0.18);
+  color: var(--accent-color);
+  border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
 .badge.avg {

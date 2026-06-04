@@ -102,6 +102,7 @@ export function useCharacters() {
 
         // Common fields
         const char = {
+          JerseyNumber: row['背號'],
           Name: row['球員名稱'],
           Position: row['位置'],
           Level: row['卡片等級'],
@@ -166,7 +167,9 @@ export function useCharacters() {
         }
       })
       
-      characters.value = processed
+      characters.value = processed.sort((a, b) => {
+        return (Number(b.JerseyNumber) || 0) - (Number(a.JerseyNumber) || 0)
+      })
       loading.value = false
       
     } catch (e) {
