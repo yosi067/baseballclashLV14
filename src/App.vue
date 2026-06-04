@@ -61,7 +61,7 @@ onUnmounted(() => {
           <div class="right-panel">
             <CharacterList 
               :characters="characters" 
-              :selected-id="selectedCharacter?.Name"
+              :selected-id="selectedCharacter?.Id"
               @select="handleSelect"
             />
           </div>
@@ -79,7 +79,7 @@ onUnmounted(() => {
           <div v-else class="mobile-panel full-height">
             <CharacterList 
               :characters="characters" 
-              :selected-id="selectedCharacter?.Name"
+              :selected-id="selectedCharacter?.Id"
               @select="handleSelect"
             />
           </div>

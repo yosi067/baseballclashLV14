@@ -102,6 +102,7 @@ export function useCharacters() {
 
         // Common fields
         const char = {
+          Id: `${row['球員名稱']}-${row['位置']}-${type}`,
           JerseyNumber: row['背號'],
           Name: row['球員名稱'],
           Position: row['位置'],
@@ -113,8 +114,21 @@ export function useCharacters() {
           Introduction: intro || ''
         }
         
-        // Flatten stats for easier sorting
-        if (type === 'Batter') {
+        // Flatten stats for easier sorting. Pitcher batting rows and pitcher rows
+        // are separate states for the same character and must keep different stats.
+        if (row['位置'] === '投手') {
+          char['控球'] = row['控球']
+          char['球速'] = row['球速']
+          char['移動'] = row['移動']
+          char['旋轉'] = row['旋轉']
+          
+          char.Stats = [
+            { label: '控球', value: row['控球'], color: '#38bdf8' },
+            { label: '球速', value: row['球速'], color: '#ef4444' },
+            { label: '移動', value: row['移動'], color: '#22c55e' },
+            { label: '旋轉', value: row['旋轉'], color: '#f59e0b' },
+          ]
+        } else {
           char['擊球'] = row['擊球']
           char['力量'] = row['力量']
           char['跑速'] = row['跑速']
@@ -127,18 +141,6 @@ export function useCharacters() {
             { label: '跑速', value: row['跑速'], color: '#22c55e' }, // Green
             { label: '傳球', value: row['傳球'], color: '#f59e0b' }, // Orange
             { label: '防守', value: row['防守'], color: '#8b5cf6' }, // Purple
-          ]
-        } else if (type === 'Pitcher') {
-          char['控球'] = row['控球']
-          char['球速'] = row['球速']
-          char['移動'] = row['移動']
-          char['旋轉'] = row['旋轉']
-          
-          char.Stats = [
-            { label: '控球', value: row['控球'], color: '#38bdf8' },
-            { label: '球速', value: row['球速'], color: '#ef4444' },
-            { label: '移動', value: row['移動'], color: '#22c55e' },
-            { label: '旋轉', value: row['旋轉'], color: '#f59e0b' },
           ]
         }
         

@@ -190,9 +190,9 @@ const getSortLabel = (key) => {
     <div class="list-content">
       <div 
         v-for="char in filteredCharacters" 
-        :key="char.Name + char.Position"
+        :key="char.Id"
         class="character-item"
-        :class="{ active: selectedId === char.Name }"
+        :class="{ active: selectedId === char.Id }"
         @click="emit('select', char)"
       >
         <div class="char-avatar-container">
