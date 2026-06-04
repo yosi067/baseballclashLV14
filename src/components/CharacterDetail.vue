@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Zap, Shield, Activity, Target, Wind, RotateCw, Move, ArrowLeft } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -46,12 +46,87 @@ const formatSkill = (skill) => {
   return skill.replace(/\[(.*?)\]/g, '<span class="highlight">[$1]</span>')
 }
 
+const swipeStartX = ref(0)
+const swipeStartY = ref(0)
+const swipeOffset = ref(0)
+const isTrackingSwipe = ref(false)
+const isSwipeActive = ref(false)
+
+const swipeStyle = computed(() => {
+  if (!props.showBackButton) return {}
+
+  const progress = Math.min(swipeOffset.value / 120, 1)
+  return {
+    transform: `translateX(${swipeOffset.value}px)`,
+    opacity: `${1 - progress * 0.25}`,
+    transition: isSwipeActive.value ? 'none' : 'transform 0.22s ease, opacity 0.22s ease'
+  }
+})
+
+const resetSwipe = () => {
+  swipeOffset.value = 0
+  isTrackingSwipe.value = false
+  isSwipeActive.value = false
+}
+
+const handleTouchStart = (event) => {
+  if (!props.showBackButton || event.touches.length !== 1) return
+
+  swipeStartX.value = event.touches[0].clientX
+  swipeStartY.value = event.touches[0].clientY
+  swipeOffset.value = 0
+  isTrackingSwipe.value = true
+  isSwipeActive.value = false
+}
+
+const handleTouchMove = (event) => {
+  if (!isTrackingSwipe.value || event.touches.length !== 1) return
+
+  const deltaX = event.touches[0].clientX - swipeStartX.value
+  const deltaY = event.touches[0].clientY - swipeStartY.value
+  const absX = Math.abs(deltaX)
+  const absY = Math.abs(deltaY)
+
+  if (deltaX <= 0) {
+    swipeOffset.value = 0
+    return
+  }
+
+  if (!isSwipeActive.value) {
+    if (absX < 12) return
+    if (absX <= absY * 1.2) {
+      resetSwipe()
+      return
+    }
+    isSwipeActive.value = true
+  }
+
+  event.preventDefault()
+  swipeOffset.value = Math.min(deltaX, 160)
+}
+
+const handleTouchEnd = () => {
+  if (!isTrackingSwipe.value) return
+
+  if (swipeOffset.value >= 90) {
+    emit('back')
+  }
+
+  resetSwipe()
+}
+
 const maxStat = 255
 </script>
 
 <template>
-  <div class="character-detail glass-panel">
-    <div v-if="character" class="detail-content">
+  <div 
+    class="character-detail glass-panel"
+    @touchstart="handleTouchStart"
+    @touchmove="handleTouchMove"
+    @touchend="handleTouchEnd"
+    @touchcancel="resetSwipe"
+  >
+    <div v-if="character" class="detail-content" :style="swipeStyle">
       <div class="detail-header">
         <button v-if="showBackButton" @click="emit('back')" class="back-btn">
           <ArrowLeft :size="24" />
@@ -136,6 +211,8 @@ const maxStat = 255
   padding: 30px;
   box-sizing: border-box;
   position: relative;
+  overscroll-behavior-x: contain;
+  touch-action: pan-y;
 }
 
 .detail-content {
@@ -143,6 +220,7 @@ const maxStat = 255
   margin: 0 auto;
   animation: fadeIn 0.3s ease;
   padding-bottom: 40px;
+  will-change: transform, opacity;
 }
 
 @keyframes fadeIn {
