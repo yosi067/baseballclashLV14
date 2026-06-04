@@ -31,7 +31,8 @@ const positionOptions = ['外野手', '內野手', '捕手', '投手', '投手(�
 const sortOptions = [
   { label: '擊球', key: '擊球' },
   { label: '力量', key: '力量' },
-  { label: '速度', key: '速度' },
+  { label: '跑速', key: '跑速' },
+  { label: '球速', key: '球速' },
   { label: '傳球', key: '傳球' },
   { label: '防守', key: '防守' },
   { label: '控球', key: '控球' },
@@ -90,7 +91,7 @@ const toggleFilter = (list, item) => {
 }
 
 const getAvatarUrl = (name) => {
-  return `./images/characters/${name}.png`
+  return `./images/characters/${name}.jpeg`
 }
 
 const handleImageError = (e) => {

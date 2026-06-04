@@ -1,20 +1,27 @@
 <script setup>
 import { computed } from 'vue'
-import { Zap, Shield, Activity, Target, Wind, RotateCw, Move } from 'lucide-vue-next'
+import { Zap, Shield, Activity, Target, Wind, RotateCw, Move, ArrowLeft } from 'lucide-vue-next'
 
 const props = defineProps({
   character: {
     type: Object,
     default: null
+  },
+  showBackButton: {
+    type: Boolean,
+    default: false
   }
 })
+
+const emit = defineEmits(['back'])
 
 // Map labels to icons
 const getIcon = (label) => {
   switch (label) {
     case '擊球': return Target
     case '力量': return Zap
-    case '速度': return Wind // Running speed or Velocity
+    case '跑速': return Wind // Run Speed
+    case '球速': return Zap // Velocity (using Zap for power/speed)
     case '傳球': return Activity
     case '防守': return Shield
     case '控球': return Target
@@ -24,17 +31,44 @@ const getIcon = (label) => {
   }
 }
 
-const maxStat = 250 // Adjusted max stat for new data range (values go up to ~232)
+const getAvatarUrl = (name) => {
+  return `./images/characters/${name}.jpeg`
+}
+
+const handleImageError = (e) => {
+  e.target.style.display = 'none'
+  e.target.nextElementSibling.style.display = 'flex'
+}
+
+const formatSkill = (skill) => {
+  if (!skill) return ''
+  // Replace [text] with <span class="highlight">[text]</span>
+  return skill.replace(/\[(.*?)\]/g, '<span class="highlight">[$1]</span>')
+}
+
+const maxStat = 255
 </script>
 
 <template>
   <div class="character-detail glass-panel">
     <div v-if="character" class="detail-content">
       <div class="detail-header">
-        <div class="avatar-large">
+        <button v-if="showBackButton" @click="emit('back')" class="back-btn">
+          <ArrowLeft :size="24" />
+        </button>
+        
+        <div class="avatar-wrapper">
+          <div class="avatar-large">
+            <img 
+              :src="getAvatarUrl(character.Name)" 
+              alt="" 
+              class="avatar-img"
+              @error="handleImageError"
+            />
+            <!-- Placeholder for actual image -->
+            <div class="avatar-initial">{{ character.Name ? character.Name.charAt(0) : '?' }}</div>
+          </div>
           <div class="position-badge">{{ character.Position }}</div>
-          <!-- Placeholder for actual image -->
-          <div class="avatar-initial">{{ character.Name ? character.Name.charAt(0) : '?' }}</div>
         </div>
         
         <div class="header-info">
@@ -62,14 +96,23 @@ const maxStat = 250 // Adjusted max stat for new data range (values go up to ~23
         </div>
       </div>
 
-      <div v-if="character.Skill" class="skill-section">
-        <h3 class="section-title">特殊技能</h3>
-        <div class="skill-card">
-          <div class="skill-icon-wrapper">
-            <Zap :size="24" class="skill-icon" />
+      <div class="info-section">
+        <div v-if="character.Skill" class="skill-section">
+          <h3 class="section-title">特殊技能</h3>
+          <div class="skill-card">
+            <div class="skill-icon-wrapper">
+              <Zap :size="24" class="skill-icon" />
+            </div>
+            <div class="skill-text">
+              <p v-html="formatSkill(character.Skill)"></p>
+            </div>
           </div>
-          <div class="skill-text">
-            <p>{{ character.Skill }}</p>
+        </div>
+
+        <div v-if="character.Introduction" class="intro-section">
+          <h3 class="section-title">角色介紹</h3>
+          <div class="intro-card">
+            <p>{{ character.Introduction }}</p>
           </div>
         </div>
       </div>
@@ -98,6 +141,7 @@ const maxStat = 250 // Adjusted max stat for new data range (values go up to ~23
   max-width: 800px;
   margin: 0 auto;
   animation: fadeIn 0.3s ease;
+  padding-bottom: 40px;
 }
 
 @keyframes fadeIn {
@@ -110,11 +154,38 @@ const maxStat = 250 // Adjusted max stat for new data range (values go up to ~23
   align-items: center;
   gap: 24px;
   margin-bottom: 40px;
+  position: relative;
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: -10px; /* Pull it closer */
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  color: var(--accent-color);
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
 }
 
 .avatar-large {
-  width: 100px;
-  height: 100px;
+  width: 100%;
+  height: 100%;
   border-radius: 24px;
   background: linear-gradient(135deg, #334155, #1e293b);
   display: flex;
@@ -123,12 +194,30 @@ const maxStat = 250 // Adjusted max stat for new data range (values go up to ~23
   position: relative;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   border: 2px solid var(--glass-border);
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
 
 .avatar-initial {
   font-size: 3rem;
   font-weight: 800;
   color: var(--text-secondary);
+  z-index: 0;
+  display: none; /* Hidden by default, shown on error */
+}
+
+/* Show initial when image fails (handled by JS setting display:none on img) */
+.avatar-img[style*="display: none"] + .avatar-initial {
+  display: block;
 }
 
 .position-badge {
@@ -142,6 +231,7 @@ const maxStat = 250 // Adjusted max stat for new data range (values go up to ~23
   border-radius: 8px;
   font-size: 0.9rem;
   box-shadow: 0 4px 10px rgba(56, 189, 248, 0.4);
+  z-index: 10;
 }
 
 .name {
@@ -221,6 +311,12 @@ const maxStat = 250 // Adjusted max stat for new data range (values go up to ~23
   transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .section-title {
   font-size: 1.2rem;
   margin-bottom: 16px;
@@ -244,11 +340,31 @@ const maxStat = 250 // Adjusted max stat for new data range (values go up to ~23
   padding: 12px;
   border-radius: 12px;
   color: var(--accent-color);
+  flex-shrink: 0;
 }
 
 .skill-text p {
   margin: 0;
   line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* Highlight style for [Skill Name] */
+:deep(.highlight) {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.intro-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.intro-card p {
+  margin: 0;
+  line-height: 1.8;
   color: var(--text-secondary);
 }
 

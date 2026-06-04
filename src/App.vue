@@ -1,22 +1,38 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import CharacterList from './components/CharacterList.vue'
 import CharacterDetail from './components/CharacterDetail.vue'
 import { useCharacters } from './composables/useCharacters'
 
 const { characters, loading, error, fetchCharacters } = useCharacters()
 const selectedCharacter = ref(null)
+const windowWidth = ref(window.innerWidth)
+
+const isMobile = computed(() => windowWidth.value < 900)
+
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+}
 
 const handleSelect = (character) => {
   selectedCharacter.value = character
 }
 
-// Select first character by default when data loads
+const handleBack = () => {
+  selectedCharacter.value = null
+}
+
+// Select first character by default when data loads (only on desktop)
 onMounted(async () => {
+  window.addEventListener('resize', handleResize)
   await fetchCharacters()
-  if (characters.value.length > 0) {
+  if (!isMobile.value && characters.value.length > 0) {
     selectedCharacter.value = characters.value[0]
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -36,17 +52,38 @@ onMounted(async () => {
       </div>
 
       <template v-else>
-        <div class="left-panel">
-          <CharacterDetail :character="selectedCharacter" />
-        </div>
-        
-        <div class="right-panel">
-          <CharacterList 
-            :characters="characters" 
-            :selected-id="selectedCharacter?.Name"
-            @select="handleSelect"
-          />
-        </div>
+        <!-- Desktop Layout -->
+        <template v-if="!isMobile">
+          <div class="left-panel">
+            <CharacterDetail :character="selectedCharacter" />
+          </div>
+          
+          <div class="right-panel">
+            <CharacterList 
+              :characters="characters" 
+              :selected-id="selectedCharacter?.Name"
+              @select="handleSelect"
+            />
+          </div>
+        </template>
+
+        <!-- Mobile Layout -->
+        <template v-else>
+          <div v-if="selectedCharacter" class="mobile-panel full-height">
+            <CharacterDetail 
+              :character="selectedCharacter" 
+              :show-back-button="true"
+              @back="handleBack"
+            />
+          </div>
+          <div v-else class="mobile-panel full-height">
+            <CharacterList 
+              :characters="characters" 
+              :selected-id="selectedCharacter?.Name"
+              @select="handleSelect"
+            />
+          </div>
+        </template>
       </template>
     </main>
   </div>
@@ -54,7 +91,8 @@ onMounted(async () => {
 
 <style scoped>
 .app-container {
-  height: 100vh;
+  height: 100vh; /* Fallback */
+  height: 100dvh;
   width: 100vw;
   position: relative;
   overflow: hidden;
@@ -101,12 +139,22 @@ onMounted(async () => {
 .left-panel {
   flex: 2;
   min-width: 0; /* Prevent flex overflow */
+  height: 100%;
+  overflow: hidden;
 }
 
 .right-panel {
   flex: 1;
   min-width: 300px;
   max-width: 400px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mobile-panel {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .loading-screen, .error-screen {
@@ -135,18 +183,12 @@ onMounted(async () => {
 /* Responsive Design */
 @media (max-width: 900px) {
   .main-layout {
-    flex-direction: column-reverse;
-    padding: 10px;
+    padding: 0; /* Full width on mobile */
   }
-
-  .left-panel {
-    flex: 1;
-  }
-
-  .right-panel {
-    flex: 1;
-    max-width: none;
-    height: 40%;
+  
+  .app-container {
+    /* Ensure mobile browsers handle height correctly */
+    height: 100dvh;
   }
 }
 </style>
