@@ -48,6 +48,12 @@ const maxJerseyNumber = computed(() => {
   }, 0)
 })
 
+const getPositionOrder = (position) => {
+  if (position === '投手') return 0
+  if (position === '投手(打)') return 1
+  return 2
+}
+
 const filteredCharacters = computed(() => {
   let result = [...props.characters]
 
@@ -74,6 +80,7 @@ const filteredCharacters = computed(() => {
     
     if (valA < valB) return sortDirection.value === 'asc' ? -1 : 1
     if (valA > valB) return sortDirection.value === 'asc' ? 1 : -1
+    if (a.Name === b.Name) return getPositionOrder(a.Position) - getPositionOrder(b.Position)
     return 0
   })
 
@@ -202,7 +209,7 @@ const getSortLabel = (key) => {
             class="char-avatar-img"
             @error="handleImageError"
           />
-          <div class="char-avatar-placeholder" :class="{ 'pitcher-batting': char.Position === '投手(打)' }">
+          <div class="char-avatar-placeholder" :class="{ pitcher: char.Position === '投手' }">
             {{ char.Position ? char.Position.substring(0, 2) : '?' }}
           </div>
         </div>
@@ -469,7 +476,7 @@ const getSortLabel = (key) => {
   left: 0;
 }
 
-.char-avatar-placeholder.pitcher-batting {
+.char-avatar-placeholder.pitcher {
   border-color: #fbbf24;
   color: #fbbf24;
 }

@@ -5,6 +5,12 @@ const characters = ref([])
 const loading = ref(true)
 const error = ref(null)
 
+const getPositionOrder = (position) => {
+  if (position === '投手') return 0
+  if (position === '投手(打)') return 1
+  return 2
+}
+
 export function useCharacters() {
   const fetchCharacters = async () => {
     loading.value = true
@@ -170,7 +176,10 @@ export function useCharacters() {
       })
       
       characters.value = processed.sort((a, b) => {
-        return (Number(b.JerseyNumber) || 0) - (Number(a.JerseyNumber) || 0)
+        const jerseyDiff = (Number(b.JerseyNumber) || 0) - (Number(a.JerseyNumber) || 0)
+        if (jerseyDiff !== 0) return jerseyDiff
+        if (a.Name === b.Name) return getPositionOrder(a.Position) - getPositionOrder(b.Position)
+        return 0
       })
       loading.value = false
       
